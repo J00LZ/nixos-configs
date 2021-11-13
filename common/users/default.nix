@@ -5,6 +5,8 @@
   programs.neovim.enable = true;
   programs.neovim.viAlias = true;
 
+  users.defaultUserShell = pkgs.fish;
+
   users.extraUsers.jdejeu = {
     isNormalUser = true;
     home = "/home/jdejeu";
@@ -22,6 +24,6 @@
     openssh.authorizedKeys.keys =
       config.users.users.jdejeu.openssh.authorizedKeys.keys;
     # Also use zsh for root
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
   };
 }

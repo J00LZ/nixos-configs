@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports = [ ./users ];
@@ -15,6 +15,8 @@
 
   # Set your time zone.
   time.timeZone = "Europe/Amsterdam";
+
+  programs.fish.enable = true;
 
   # Optimize nix store by hardlinking identitical files.
   nix = {
