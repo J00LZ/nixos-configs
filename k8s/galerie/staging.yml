@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: galerie-staging-deployment
+  labels:
+    app: galerie-staging-deployment
+    keel.sh/policy: force
+    keel.sh/match-tag: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: galerie-staging-deployment
+  template:
+    metadata:
+      labels:
+        app: galerie-staging-deployment
+    spec:
+      containers:
+      - name: galerie-staging-deployment
+        imagePullPolicy: Always
+        image: registry.voidcorp.nl/library/galerie:staging
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: galerie-staging-deployment-service
+spec:
+  selector:
+    app: galerie-staging-deployment
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: galerie-staging-deployment-ingress
+spec:
+  rules:
+  - host: "staging.galerievanslagmaat.nl"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service: 
+            name: galerie-staging-deployment-service
+            port: 
+              number: 80
+

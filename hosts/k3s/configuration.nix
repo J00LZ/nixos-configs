@@ -39,18 +39,15 @@
   systemd.services.k3s.path = [ pkgs.gnugrep pkgs.utillinux ];
 
   # Enable k3s as a master node
-  # services.k3s = {
-  #   enable = true;
-  #   role = "server";
+  services.k3s = {
+    enable = true;
+    role = "server";
 
-  #   extraFlags = builtins.toString [
-  #     "--data-dir=/var/lib/k3s" # Set data dir to var lib
-  #     "--cluster-init" # Enable embedded etcd
-  #     "--disable=servicelb" # disable servicelb
-  #     "--no-deploy=traefik" # we want to configure traefik ourselves (or use nginx instead)
-  #     "--cluster-cidr=10.69.0.0/16" # the default of 10.42.0.0/16 clashes with my own network
-  #   ];
-  # };
-  virtualisation.docker.enable = true;
-  users.users.jdejeu.extraGroups = [ "docker" ];
+    extraFlags = builtins.toString [
+      "--data-dir=/var/lib/k3s" # Set data dir to var lib
+      "--cluster-init" # Enable embedded etcd
+      "--cluster-cidr=10.69.0.0/16" # the default of 10.42.0.0/16 clashes with my own network
+    ];
+  };
+
 }

@@ -32,6 +32,15 @@ in {
         realm = "Voidcorp Registry";
         path = "/etc/htpasswd";
       };
+
+      notifications.endpoints = [{
+        name = "keel";
+        url = "http://10.42.20.5:9300/v1/webhooks/registry";
+        timeout = "500ms";
+        treshold = 5;
+        backoff = "1s";
+      }];
     };
   };
+
 }

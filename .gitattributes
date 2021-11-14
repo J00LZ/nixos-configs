@@ -1,1 +1,2 @@
 secrets.nix filter=git-crypt diff=git-crypt
+secrets.yml filter=git-crypt diff=git-crypt

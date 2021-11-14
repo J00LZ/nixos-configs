@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drone-deployment
+  namespace: drone
+  labels:
+    app: drone-deployment
+    # keel.sh/policy: force
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drone-deployment
+  template:
+    metadata:
+      labels:
+        app: drone-deployment
+    spec:
+      containers:
+      - name: drone-deployment
+        image: drone/drone:2
+        ports:
+        - containerPort: 80
+        env:
+        - name: DRONE_GITEA_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_GITEA_CLIENT_ID
+        - name: DRONE_GITEA_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_GITEA_CLIENT_SECRET
+        - name: DRONE_GITEA_SERVER
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_GITEA_SERVER
+        - name: DRONE_GIT_ALWAYS_AUTH
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_GIT_ALWAYS_AUTH
+        - name: DRONE_RPC_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_RPC_SECRET
+        - name: DRONE_SERVER_HOST
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_SERVER_HOST
+        - name: DRONE_SERVER_PROTO
+          valueFrom:
+            secretKeyRef:
+              name: drone-secrets
+              key: DRONE_SERVER_PROTO
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: drone
+  name: drone-deployment-service
+spec:
+  selector:
+    app: drone-deployment
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: drone
+  name: drone-deployment-ingress
+spec:
+  rules:
+  - host: "drone.voidcorp.nl"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service: 
+            name: drone-deployment-service
+            port: 
+              number: 80
+

@@ -8,7 +8,7 @@ let
       proxyWebsockets = true;
     };
   };
-  k8s_proxy = proxy "https://k8s-1.voidlocal:443/";
+  k8s_proxy = proxy "http://10.42.20.5:80/";
 in {
   imports = [
     # Import common config
@@ -44,7 +44,10 @@ in {
 
     virtualHosts."git.voidcorp.nl" = proxy "http://gitea.voidlocal:3000/";
 
-    virtualHosts."galerievanslagmaat.nl" = proxy "http://10.42.0.124:5667/";
+    virtualHosts."galerievanslagmaat.nl" = k8s_proxy;
+    virtualHosts."staging.galerievanslagmaat.nl" = k8s_proxy;
+    virtualHosts."groenehartansichtkaarten.nl" = k8s_proxy;
+    virtualHosts."drone.voidcorp.nl" = k8s_proxy;
 
     virtualHosts."vaultwarden.voidcorp.nl" = proxy "http://10.42.20.4:8000/";
 
