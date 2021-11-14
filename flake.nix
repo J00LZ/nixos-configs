@@ -51,6 +51,21 @@
       ];
     };
 
+    nixosConfigurations.postgresql = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
+        ./hosts/postgresql/configuration.nix
+      ];
+    };
+    nixosConfigurations.grafana = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
+        ./hosts/grafana/configuration.nix
+      ];
+    };
+
     deploy.nodes.nginx = {
       hostname = "10.42.20.2";
       fastConnection = true;
@@ -108,6 +123,26 @@
         user = "root";
         path = deploy-rs.lib.x86_64-linux.activate.nixos
           self.nixosConfigurations.registry;
+      };
+    };
+
+    deploy.nodes.postgresql = {
+      hostname = "10.42.20.8";
+      fastConnection = true;
+      profiles.system = {
+        user = "root";
+        path = deploy-rs.lib.x86_64-linux.activate.nixos
+          self.nixosConfigurations.postgresql;
+      };
+    };
+
+    deploy.nodes.grafana = {
+      hostname = "10.42.20.9";
+      fastConnection = true;
+      profiles.system = {
+        user = "root";
+        path = deploy-rs.lib.x86_64-linux.activate.nixos
+          self.nixosConfigurations.grafana;
       };
     };
 
