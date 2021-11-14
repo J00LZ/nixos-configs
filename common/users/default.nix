@@ -4,6 +4,7 @@
   environment.systemPackages = with pkgs; [ fzf git htop rsync ripgrep zoxide ];
   programs.neovim.enable = true;
   programs.neovim.viAlias = true;
+  programs.fish.shellInit = "set -U fish_greeting";
 
   users.defaultUserShell = pkgs.fish;
 
