@@ -55,6 +55,7 @@ in {
     virtualHosts."explore.s3.voidcorp.nl" = proxy "http://10.42.20.6:9001/";
     virtualHosts."registry.voidcorp.nl" = proxy "http://10.42.20.7:5000/";
     virtualHosts."grafana.voidcorp.nl" = proxy "http://10.42.20.9:3000/";
+    virtualHosts."gitlab.voidcorp.nl" = proxy "http://10.42.2.2:80/";
   };
 
   security.acme.email = "acme@voidcorp.nl";

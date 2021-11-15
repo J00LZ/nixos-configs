@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pinbot-deployment
+  labels:
+    app: pinbot-deployment
+    keel.sh/policy: force
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pinbot-deployment
+  template:
+    metadata:
+      labels:
+        app: pinbot-deployment
+    spec:
+      containers:
+      - name: pinbot-deployment
+        image: registry.voidcorp.nl/library/pinbot:main
+        env:
+        - name: DISCORD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: pinbot-stuff
+              key: token
+      imagePullSecrets:
+      - name: regcred
