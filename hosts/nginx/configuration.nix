@@ -29,7 +29,7 @@ in {
   environment.systemPackages = with pkgs; [ ];
 
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [ 80 443 9000 9001 ];
 
   services.nginx = {
     enable = true;
@@ -38,8 +38,6 @@ in {
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
 
-    virtualHosts."voidcorp.nl" = k8s_proxy;
-    virtualHosts."harbor.voidcorp.nl" = k8s_proxy;
     virtualHosts."cdn.voidcorp.nl" = proxy "http://10.42.2.6:80/";
 
     virtualHosts."git.voidcorp.nl" = proxy "http://gitea.voidlocal:3000/";
@@ -57,6 +55,13 @@ in {
     virtualHosts."grafana.voidcorp.nl" = proxy "http://10.42.20.9:3000/";
     virtualHosts."gitlab.voidcorp.nl" = proxy "http://10.42.2.2:80/";
   };
+
+  # services.prometheus.exporters = {
+  #   nginxLog = {
+  #     enable = true;
+  #     port = 9000;
+  #   };
+  # };
 
   security.acme.email = "acme@voidcorp.nl";
   security.acme.acceptTerms = true;

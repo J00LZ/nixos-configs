@@ -4,151 +4,57 @@
   inputs.deploy-rs.url = "github:serokell/deploy-rs";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs, deploy-rs }: {
-
-    nixosConfigurations.nginx = nixpkgs.lib.nixosSystem {
+  outputs = { self, nixpkgs, deploy-rs }@inputs:
+    let
       system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/nginx/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.gitea = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/gitea/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.vaultwarden = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/vaultwarden/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.k3s = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [ ./hosts/k3s/configuration.nix ];
-    };
-
-    nixosConfigurations.minio = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/minio/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.registry = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/registry/configuration.nix
-      ];
-    };
-
-    nixosConfigurations.postgresql = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/postgresql/configuration.nix
-      ];
-    };
-    nixosConfigurations.grafana = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix"
-        ./hosts/grafana/configuration.nix
-      ];
-    };
-
-    deploy.nodes.nginx = {
-      hostname = "10.42.20.2";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.nginx;
+      mkConfig = { name, lxc ? true }:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = (if lxc then
+            [ "${nixpkgs}/nixos/modules/virtualisation/lxc-container.nix" ]
+          else
+          # this is probably the ugliest fix ever, but it
+          # makes both nix/deploy.rs and the formatter work so it's fine
+            [ ]) ++ [ "${./.}/hosts/${name}/configuration.nix" ];
+          specialArgs = { inputs = inputs; };
+        };
+      mkDeploy = profile: hostname: {
+        hostname = hostname;
+        fastConnection = true;
+        profiles.system = {
+          user = "root";
+          path = deploy-rs.lib.${system}.activate.nixos
+            self.nixosConfigurations.${profile};
+        };
       };
-    };
 
-    deploy.nodes.gitea = {
-      hostname = "10.42.20.3";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.gitea;
+    in {
+
+      nixosConfigurations.nginx = mkConfig { name = "nginx"; };
+      nixosConfigurations.gitea = mkConfig { name = "gitea"; };
+      nixosConfigurations.vaultwarden = mkConfig { name = "vaultwarden"; };
+      nixosConfigurations.k3s = mkConfig {
+        name = "k3s";
+        lxc = false;
       };
+      nixosConfigurations.minio = mkConfig { name = "minio"; };
+      nixosConfigurations.registry = mkConfig { name = "registry"; };
+      nixosConfigurations.postgresql = mkConfig { name = "postgresql"; };
+      nixosConfigurations.grafana = mkConfig { name = "grafana"; };
+      nixosConfigurations.dns = mkConfig { name = "dns"; };
+
+      deploy.nodes.nginx = mkDeploy "nginx" "10.42.20.2";
+      deploy.nodes.gitea = mkDeploy "gitea" "10.42.20.3";
+      deploy.nodes.vaultwarden = mkDeploy "vaultwarden" "10.42.20.4";
+      deploy.nodes.k3s = mkDeploy "k3s" "10.42.20.5";
+      deploy.nodes.minio = mkDeploy "minio" "10.42.20.6";
+      deploy.nodes.registry = mkDeploy "registry" "10.42.20.7";
+      deploy.nodes.postgresql = mkDeploy "postgresql" "10.42.20.8";
+      deploy.nodes.grafana = mkDeploy "grafana" "10.42.20.9";
+      deploy.nodes.dns = mkDeploy "dns" "10.42.20.10";
+
+      checks = builtins.mapAttrs
+        (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
+
     };
-
-    deploy.nodes.vaultwarden = {
-      hostname = "10.42.20.4";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.vaultwarden;
-      };
-    };
-
-    deploy.nodes.k3s = {
-      hostname = "10.42.20.5";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.k3s;
-      };
-    };
-
-    deploy.nodes.minio = {
-      hostname = "10.42.20.6";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.minio;
-      };
-    };
-
-    deploy.nodes.registry = {
-      hostname = "10.42.20.7";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.registry;
-      };
-    };
-
-    deploy.nodes.postgresql = {
-      hostname = "10.42.20.8";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.postgresql;
-      };
-    };
-
-    deploy.nodes.grafana = {
-      hostname = "10.42.20.9";
-      fastConnection = true;
-      profiles.system = {
-        user = "root";
-        path = deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.grafana;
-      };
-    };
-
-    checks =
-      builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy)
-      deploy-rs.lib;
-
-  };
 }

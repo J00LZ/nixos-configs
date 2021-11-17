@@ -28,8 +28,8 @@ in {
     enable = true;
     text = secrets.secretKey;
   };
-  
-  networking.firewall.allowedTCPPorts = [ 3000 ];
+
+  networking.firewall.allowedTCPPorts = [ 3000 9001 ];
 
   services.grafana = {
     enable = true;
@@ -50,6 +50,18 @@ in {
       secretKeyFile = "/etc/signKey";
     };
     analytics.reporting.enable = false;
+  };
+
+  services.prometheus = {
+    enable = true;
+    port = 9001;
+    # scrapeConfigs = [{
+    #   job_name = "nginx";
+    #   static_configs = [
+    #     { targets = [ "10.42.20.2:9000" ]; }
+    #     { targets = [ "10.42.20.2:9001" ]; }
+    #   ];
+    # }];
   };
 
 }
