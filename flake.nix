@@ -6,7 +6,10 @@
 
   outputs = { self, nixpkgs, deploy-rs }@inputs:
     let
+      # Add default system
       system = "x86_64-linux";
+
+      # Make a config
       mkConfig = { name, lxc ? true }:
         nixpkgs.lib.nixosSystem {
           inherit system;
@@ -18,6 +21,8 @@
             [ ]) ++ [ "${./.}/hosts/${name}/configuration.nix" ];
           specialArgs = { inputs = inputs; };
         };
+
+      # create a deployment
       mkDeploy = profile: {
         hostname = "${profile}.voidlocal";
         fastConnection = true;
@@ -27,9 +32,14 @@
             self.nixosConfigurations.${profile};
         };
       };
+
+      # art starts here :D
       hosts' = import ./common/hosts.nix;
+
+      # we only want nix hosts for this part, not all of the defined ones...
       nixHosts = (builtins.filter ({ nix ? true, ... }: nix) hosts');
 
+      # Convert a host from hosts.nix to something nixosConfigurations understands
       hostToConfig = z@{ hostname, nixname ? hostname, lxc ? true, ... }:
         a:
         a // {
@@ -39,12 +49,14 @@
           };
         };
 
+      # Same as above, but for the nodes part of deploy.
       hostToDeploy = z@{ hostname, nixname ? hostname, lxc ? true, ... }:
         a:
         a // {
           ${nixname} = mkDeploy nixname;
         };
 
+      # And actually make the two sets.
       configs = nixpkgs.lib.fold hostToConfig { } nixHosts;
       nodes = nixpkgs.lib.fold hostToDeploy { } nixHosts;
     in {
