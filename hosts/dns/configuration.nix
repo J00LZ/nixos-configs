@@ -1,5 +1,6 @@
 { config, pkgs, ... }:
-let hosts = import ../../common/hosts.nix;
+# can i just say that i hate this
+let hosts = import ../.;
 in {
   imports = [
     # Import common config
@@ -7,9 +8,7 @@ in {
     ../../common
   ];
 
-  networking = {
-    hostName = "dns";
-  };
+  networking.hostName = "dns";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
