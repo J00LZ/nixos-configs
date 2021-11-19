@@ -18,8 +18,8 @@
             [ ]) ++ [ "${./.}/hosts/${name}/configuration.nix" ];
           specialArgs = { inputs = inputs; };
         };
-      mkDeploy = profile: hostname: {
-        hostname = hostname;
+      mkDeploy = profile: {
+        hostname = "${profile}.voidlocal";
         fastConnection = true;
         profiles.system = {
           user = "root";
@@ -27,31 +27,31 @@
             self.nixosConfigurations.${profile};
         };
       };
+      hosts' = import ./common/hosts.nix;
+      nixHosts = (builtins.filter ({ nix ? true, ... }: nix) hosts');
 
+      hostToConfig = z@{ hostname, nixname ? hostname, lxc ? true, ... }:
+        a:
+        a // {
+          ${nixname} = mkConfig {
+            name = nixname;
+            lxc = lxc;
+          };
+        };
+
+      hostToDeploy = z@{ hostname, nixname ? hostname, lxc ? true, ... }:
+        a:
+        a // {
+          ${nixname} = mkDeploy nixname;
+        };
+
+      configs = nixpkgs.lib.fold hostToConfig { } nixHosts;
+      nodes = nixpkgs.lib.fold hostToDeploy { } nixHosts;
     in {
 
-      nixosConfigurations.nginx = mkConfig { name = "nginx"; };
-      nixosConfigurations.gitea = mkConfig { name = "gitea"; };
-      nixosConfigurations.vaultwarden = mkConfig { name = "vaultwarden"; };
-      nixosConfigurations.k3s = mkConfig {
-        name = "k3s";
-        lxc = false;
-      };
-      nixosConfigurations.minio = mkConfig { name = "minio"; };
-      nixosConfigurations.registry = mkConfig { name = "registry"; };
-      nixosConfigurations.postgresql = mkConfig { name = "postgresql"; };
-      nixosConfigurations.grafana = mkConfig { name = "grafana"; };
-      nixosConfigurations.dns = mkConfig { name = "dns"; };
+      nixosConfigurations = configs;
 
-      deploy.nodes.nginx = mkDeploy "nginx" "10.42.20.2";
-      deploy.nodes.gitea = mkDeploy "gitea" "10.42.20.3";
-      deploy.nodes.vaultwarden = mkDeploy "vaultwarden" "10.42.20.4";
-      deploy.nodes.k3s = mkDeploy "k3s" "10.42.20.5";
-      deploy.nodes.minio = mkDeploy "minio" "10.42.20.6";
-      deploy.nodes.registry = mkDeploy "registry" "10.42.20.7";
-      deploy.nodes.postgresql = mkDeploy "postgresql" "10.42.20.8";
-      deploy.nodes.grafana = mkDeploy "grafana" "10.42.20.9";
-      deploy.nodes.dns = mkDeploy "dns" "10.42.20.10";
+      deploy.nodes = nodes;
 
       checks = builtins.mapAttrs
         (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;

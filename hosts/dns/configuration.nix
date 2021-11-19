@@ -1,6 +1,5 @@
 { config, pkgs, ... }:
-let
-
+let hosts = import ../../common/hosts.nix;
 in {
   imports = [
     # Import common config
@@ -8,7 +7,9 @@ in {
     ../../common
   ];
 
-  networking.hostName = "dns";
+  networking = {
+    hostName = "dns";
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -29,116 +30,9 @@ in {
     settings = {
       server = let
         localData = hostname: ip: ''"${hostname}.voidlocal. A ${ip}"'';
-        localData' = { hostname, ip }: localData hostname ip;
+        localData' = { hostname, ip, ... }: localData hostname ip;
         ptrData = hostname: ip: ''"${ip} ${hostname}.voidlocal"'';
-        ptrData' = { hostname, ip }: ptrData hostname ip;
-
-        hosts = [
-          {
-            hostname = "localhost";
-            ip = "127.0.0.1";
-          }
-          {
-            hostname = "pfsense";
-            ip = "10.42.0.1";
-          }
-          {
-            hostname = "pve";
-            ip = "10.42.1.1";
-          }
-          {
-            hostname = "idrac";
-            ip = "10.42.1.2";
-          }
-          {
-            hostname = "pve-storage";
-            ip = "10.42.1.4";
-          }
-          {
-            hostname = "arch-base";
-            ip = "10.42.2.1";
-          }
-          {
-            hostname = "gitlab-host";
-            ip = "10.42.2.2";
-          }
-          {
-            hostname = "storage-host";
-            ip = "10.42.2.4";
-          }
-          {
-            hostname = "cdn-host";
-            ip = "10.42.2.6";
-          }
-          {
-            hostname = "arch-torrent";
-            ip = "10.42.2.7";
-          }
-          {
-            hostname = "postgres";
-            ip = "10.42.2.19";
-          }
-          {
-            hostname = "thelounge";
-            ip = "10.42.2.21";
-          }
-          {
-            hostname = "unifi";
-            ip = "10.42.2.27";
-          }
-          {
-            hostname = "ssh-host";
-            ip = "10.42.2.28";
-          }
-          {
-            hostname = "k8s-1";
-            ip = "10.42.3.1";
-          }
-          {
-            hostname = "k8s-2";
-            ip = "10.42.3.2";
-          }
-          {
-            hostname = "k8s-3";
-            ip = "10.42.3.3";
-          }
-          {
-            hostname = "nginx";
-            ip = "10.42.20.2";
-          }
-          {
-            hostname = "gitea";
-            ip = "10.42.20.3";
-          }
-          {
-            hostname = "vaultwarden";
-            ip = "10.42.20.4";
-          }
-          {
-            hostname = "k3s-1";
-            ip = "10.42.20.5";
-          }
-          {
-            hostname = "minio";
-            ip = "10.42.20.6";
-          }
-          {
-            hostname = "registry";
-            ip = "10.42.20.7";
-          }
-          {
-            hostname = "postgresql";
-            ip = "10.42.20.8";
-          }
-          {
-            hostname = "grafana";
-            ip = "10.42.20.9";
-          }
-          {
-            hostname = "dns";
-            ip = "10.42.20.10";
-          }
-        ];
+        ptrData' = { hostname, ip, ... }: ptrData hostname ip;
 
       in {
         use-syslog = "yes";
@@ -170,7 +64,6 @@ in {
           "fd00::/8"
           "fe80::/10"
         ];
-        # addLocal "10.42.0.1" "pfsense";
       };
       forward-zone = {
         name = ''"."'';
