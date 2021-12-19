@@ -40,10 +40,12 @@
       # we only want nix hosts for this part, not all of the defined ones...
       nixHosts = (builtins.filter ({ nix ? true, ... }: nix) hosts');
 
+      # We can't do partial application with //, so this solves it i guess...
+      merge = a: b: a // b;
+
       # Convert a host from hosts.nix to something nixosConfigurations understands
       hostToConfig = z@{ hostname, nixname ? hostname, lxc ? true, ... }:
-        a:
-        a // {
+        merge {
           ${nixname} = mkConfig {
             name = nixname;
             lxc = lxc;
@@ -52,14 +54,11 @@
 
       # Same as above, but for the nodes part of deploy.
       hostToDeploy = z@{ hostname, nixname ? hostname, lxc ? true, ... }:
-        a:
-        a // {
-          ${nixname} = mkDeploy nixname;
-        };
+        merge { ${nixname} = mkDeploy nixname; };
 
       # And actually make the two sets.
-      configs = nixpkgs.lib.fold hostToConfig { } nixHosts;
-      nodes = nixpkgs.lib.fold hostToDeploy { } nixHosts;
+      configs = nixpkgs.lib.foldr hostToConfig { } nixHosts;
+      nodes = nixpkgs.lib.foldr hostToDeploy { } nixHosts;
     in {
 
       nixosConfigurations = configs;

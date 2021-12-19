@@ -3,12 +3,25 @@ let
   proxy = url: {
     forceSSL = true;
     enableACME = true;
+    http2 = true;
     locations."/" = {
       proxyPass = url;
       proxyWebsockets = true;
     };
   };
   k8s_proxy = proxy "http://10.42.20.5:80/";
+  big_proxy = url: {
+    forceSSL = true;
+    enableACME = true;
+    http2 = true;
+    locations."/" = {
+      proxyPass = url;
+      proxyWebsockets = true;
+      extraConfig = ''
+      client_max_body_size 0;
+      '';
+    };
+  };
 in {
   imports = [
     # Import common config
@@ -42,6 +55,13 @@ in {
 
     virtualHosts."git.voidcorp.nl" = proxy "http://gitea.voidlocal:3000/";
 
+    virtualHosts."www.galerievanslagmaat.nl" = {
+      forceSSL = true;
+      enableACME = true;
+      http2 = true;
+      globalRedirect = "galerievanslagmaat.nl";
+    };
+
     virtualHosts."galerievanslagmaat.nl" = k8s_proxy;
     virtualHosts."staging.galerievanslagmaat.nl" = k8s_proxy;
     virtualHosts."groenehartansichtkaarten.nl" = k8s_proxy;
@@ -49,7 +69,7 @@ in {
 
     virtualHosts."vaultwarden.voidcorp.nl" = proxy "http://10.42.20.4:8000/";
 
-    virtualHosts."s3.voidcorp.nl" = proxy "http://10.42.20.6:9000/";
+    virtualHosts."s3.voidcorp.nl" = big_proxy "http://10.42.20.6:9000/";
     virtualHosts."explore.s3.voidcorp.nl" = proxy "http://10.42.20.6:9001/";
     virtualHosts."registry.voidcorp.nl" = proxy "http://10.42.20.7:5000/";
     virtualHosts."grafana.voidcorp.nl" = proxy "http://10.42.20.9:3000/";

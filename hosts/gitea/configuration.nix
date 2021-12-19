@@ -18,7 +18,9 @@ in {
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "21.11"; # Did you read the comment?
 
-  environment.systemPackages = with pkgs; [ ];
+  environment.systemPackages = with pkgs; [
+    gnupg
+  ];
 
   networking.firewall.enable = false;
   networking.firewall.allowedTCPPorts = [ 3000 ];
@@ -28,7 +30,6 @@ in {
   environment.etc.giteaPass = {
     enable = true;
     text = "x";
-    user = "gitea2";
   };
 
   services.gitea = {
